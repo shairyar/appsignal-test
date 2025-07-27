@@ -1,0 +1,29 @@
+{
+    "name": "appsignaltest",
+    "version": "0.0.1",
+    "description": "Appsignal test]",
+    "main": "server.ts",
+    "directories": {
+        "test": "test"
+    },
+    "scripts": {
+        "server": "nodemon ./server.ts"
+    },
+    "dependencies": {
+        "@appsignal/nodejs": "^3.6.4",
+        "@aws-sdk/client-secrets-manager": "^3.846.0",
+        "dotenv": "^16.5.0",
+        "express": "^5.1.0",
+        "winston": "^3.17.0"
+    },
+    "devDependencies": {
+        "@types/cookie-parser": "^1.4.9",
+        "@types/cors": "^2.8.17",
+        "@types/express": "^5.0.1",
+        "@types/express-serve-static-core": "^5.0.6",
+        "@types/node": "^22.14.1",
+        "@types/node-fetch": "^2.6.12",
+        "nodemon": "^3.1.9",
+        "typescript": "^5.8.3"
+    }
+}
