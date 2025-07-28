@@ -1,12 +1,18 @@
 import express, { Request, Response } from 'express';
-import logger from './Logger';
-const router = express.Router();
 
-router.use(express.json());
+const createRoutes = (logger: ReturnType<typeof import('./Logger').default>) => {
+    const router = express.Router();
 
-router.get('/', (_req: Request, res: Response): void => {
-    logger.info('Home page accessed');
-    res.status(200).send({ message: `You have reached the home page` });
-});
+    router.use(express.json());
 
-export default router;
+    router.get('/', (_req: Request, res: Response): void => {
+        logger.info('Home page accessed');
+        logger.info("Log message line");
+        logger.debug("This is a debug message");
+        res.status(200).send({ message: `You have reached the home page` });
+    });
+
+    return router;
+};
+
+export default createRoutes;

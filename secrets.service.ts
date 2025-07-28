@@ -1,5 +1,14 @@
 import { SecretsManagerClient, GetSecretValueCommand } from '@aws-sdk/client-secrets-manager';
-import logger from './Logger';
+import createLogger from './Logger';
+
+// Lazy-loaded logger to avoid creating it before AppSignal is initialized
+let logger: ReturnType<typeof createLogger> | null = null;
+const getLogger = () => {
+    if (!logger) {
+        logger = createLogger();
+    }
+    return logger;
+};
 interface SecretsCache {
     [secretName: string]: {
         value: Record<string, string> | string;
@@ -63,14 +72,14 @@ class SecretsService {
 
                 // Validate that the parsed value is an object (for key-value secrets)
                 if (typeof parsed !== 'object' || parsed === null) {
-                    logger.warn(`Secret ${secretName} is not a JSON object, treating as string value`);
+                    getLogger().warn(`Secret ${secretName} is not a JSON object, treating as string value`);
                     secretValue = response.SecretString;
                 } else {
                     // Ensure all values in the object are strings
                     secretValue = Object.fromEntries(Object.entries(parsed).map(([key, value]) => [key, typeof value === 'string' ? value : String(value)]));
                 }
             } catch (parseError) {
-                logger.error(`Failed to parse JSON for secret ${secretName}`, {
+                getLogger().error(`Failed to parse JSON for secret ${secretName}`, {
                     error: {
                         message: parseError instanceof Error ? parseError.message : String(parseError),
                         secretLength: response.SecretString.length, // Log length instead of content
@@ -85,10 +94,10 @@ class SecretsService {
                 timestamp: now,
             };
 
-            logger.info(`Successfully retrieved secret: ${secretName}`);
+            getLogger().info(`Successfully retrieved secret: ${secretName}`);
             return secretValue;
         } catch (error) {
-            logger.error(`Failed to retrieve secret ${secretName}`, {
+            getLogger().error(`Failed to retrieve secret ${secretName}`, {
                 error: {
                     message: error instanceof Error ? error.message : String(error),
                     stack: error instanceof Error ? error.stack : undefined,

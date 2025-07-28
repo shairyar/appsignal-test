@@ -5,21 +5,34 @@ import environmentManager from './environment.config';
 import { Appsignal } from '@appsignal/nodejs';
 
 const startServer = async () => {
-    let logger: typeof import('./Logger').default | undefined;
+    let logger: ReturnType<typeof import('./Logger').default> | undefined;
     try {
         // Initialize environment configuration FIRST
         await environmentManager.initialize();
 
-        new Appsignal({
+        const pushApiKey = environmentManager.get('APPSIGNAL_PUSH_API_KEY');
+        const nodeEnv = environmentManager.get('NODE_ENV');
+
+        const appsignal = new Appsignal({
             active: true,
             name: 'APPSIGNAL_TEST',
-            pushApiKey: environmentManager.get('APPSIGNAL_PUSH_API_KEY'),
+            pushApiKey: pushApiKey,
             revision: process.env.APP_VERSION,
-            environment: environmentManager.get('NODE_ENV'),
+            environment: nodeEnv,
+            logLevel: 'debug',
+            logPath: './logs',
         });
 
-        const { default: app } = await import('./app');
-        logger = (await import('./Logger')).default;
+        // Create logger AFTER AppSignal is initialized
+        const createLogger = (await import('./Logger')).default;
+        const { resetLogger } = await import('./Logger');
+        
+        // Reset any previous logger instance and create fresh one
+        resetLogger();
+        logger = createLogger();
+
+        const { createApp } = await import('./app');
+        const app = createApp(logger);
 
         const port = environmentManager.get('PORT');
         const appName = environmentManager.get('APP_NAME');
